@@ -11,12 +11,12 @@ vẫn cứu được khi bảng đó đã mất; đổi lại tên gốc không 
 
 | Hệ điều hành | Tải | Cách cài |
 | --- | --- | --- |
-| Windows 10/11 64-bit | `.msi` | Nháy đúp, đồng ý quyền quản trị. Có lối tắt ở Desktop và Start. |
+| Windows 10/11 64-bit | `.msi` | Nháy đúp, đồng ý điều khoản, bấm Cài đặt. Có biểu tượng ở Desktop và Start. |
 | Windows, không cài | `-khong-can-cai.zip` | Giải nén, chạy `KhoiPhucFile.exe`. |
 | macOS 12 trở lên | `.dmg` | Kéo vào Applications. |
-| Ubuntu, Debian, Mint | `.deb` | `sudo apt install ./KhoiPhucFile-1.0.0-linux-amd64.deb` |
+| Ubuntu, Debian, Mint | `.deb` | `sudo apt install ./KhoiPhucFile-1.0.1-linux-amd64.deb` |
 | Linux khác | `.tar.gz` | Giải nén, `sudo ./install.sh` |
-| Mọi hệ có Python 3.10+ | `.whl` | `pipx install ./khoiphucfile-1.0.0-py3-none-any.whl` rồi gõ `khoiphucfile` |
+| Mọi hệ có Python 3.10+ | `.whl` | `pipx install ./khoiphucfile-1.0.1-py3-none-any.whl` rồi gõ `khoiphucfile` |
 
 Bộ cài chưa ký số nên lần đầu hệ điều hành sẽ cảnh báo:
 
@@ -58,7 +58,7 @@ python -m venv .venv
 ```
 
 Mỗi bản phải đóng gói trên đúng hệ điều hành của nó. `.github/workflows/dong_goi.yml` làm việc đó cho cả ba hệ trên
-GitHub Actions: đẩy mã lên GitHub rồi tải các bản cài ở tab Actions; đẩy thẻ `v1.0.0` thì tự tạo bản phát hành.
+GitHub Actions: đẩy mã lên GitHub rồi tải các bản cài ở tab Actions; đẩy thẻ `v1.0.1` thì tự tạo bản phát hành.
 
 - Thông tin nhà phát triển (website, điện thoại, địa chỉ): [khoiphucfile/developer.py](khoiphucfile/developer.py)
 - Điều khoản, nội quy: [khoiphucfile/van_ban/](khoiphucfile/van_ban/). Sửa xong nhớ đổi `TERMS_VERSION` trong developer.py.

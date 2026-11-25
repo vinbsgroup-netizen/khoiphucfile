@@ -16,6 +16,8 @@ with warnings.catch_warnings():
     import msilib.schema
     import msilib.sequence
 
+import msi_ui
+
 UPGRADE_CODE = "{8B0C6A0E-6E6B-4C0B-9E7E-5C1B7D0F3A52}"
 INSTALLED_EXE = "%ProgramFiles%\\{developer}\\{folder}\\KhoiPhucFile.exe"
 UTF8 = 65001
@@ -98,7 +100,8 @@ def add_shortcut(db, cab, folder, shortcut: str, name: str, code_name: str, feat
                                   None, None, 512, sequence)])
 
 
-def build(source: str, target: str, name: str, version: str, developer: str, contact: str, icon: str) -> None:
+def build(source: str, target: str, name: str, version: str, developer: str, contact: str, icon: str,
+          license_rtf: str, banner: str) -> None:
     ascii_name = "Khoi Phuc File"
     product = msilib.gen_uuid()
     msilib._directories.clear()  # msilib nhớ tên thư mục giữa các lần gọi và sẽ đổi INSTALLDIR thành INSTALLDIR1
@@ -124,6 +127,7 @@ def build(source: str, target: str, name: str, version: str, developer: str, con
     for table in ("InstallExecuteSequence", "InstallUISequence"):
         reorder(db, table, "LaunchConditions", 250)
     msilib.add_data(db, "Icon", [("AppIcon.ico", msilib.Binary(icon))])
+    msi_ui.add_ui(db, name, developer, license_rtf, banner)
 
     feature = msilib.Feature(db, "Main", ascii_name, name, 1, directory="INSTALLDIR")
     feature.set_current()

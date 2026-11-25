@@ -7,8 +7,8 @@ import os
 import struct
 import sys
 
-from PySide6.QtCore import QBuffer, QIODevice, QPointF, Qt
-from PySide6.QtGui import QColor, QGuiApplication, QImage, QPainter, QPen, QPolygonF
+from PySide6.QtCore import QBuffer, QIODevice, QPointF, QRectF, Qt
+from PySide6.QtGui import QColor, QFont, QGuiApplication, QImage, QLinearGradient, QPainter, QPen, QPolygonF
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ICONS = os.path.join(HERE, "icons")
@@ -51,6 +51,28 @@ def draw_mark(kind: str, color: str, size: int = 64) -> QImage:
     return image
 
 
+def draw_banner(width: int, height: int) -> QImage:
+    """Dải đầu trang của trình cài đặt Windows."""
+    image = QImage(width, height, QImage.Format_RGB32)
+    painter = QPainter(image)
+    painter.setRenderHint(QPainter.Antialiasing)
+    shade = QLinearGradient(0, 0, width, 0)
+    shade.setColorAt(0, QColor("#04123A"))
+    shade.setColorAt(1, QColor("#0B4FD6"))
+    painter.fillRect(image.rect(), shade)
+    side = height * 4 // 5
+    painter.drawImage((height - side) // 2, (height - side) // 2, draw(side))
+    painter.setPen(QColor("#FFFFFF"))
+    for text, size, top, bottom, bold in (("Khôi Phục File", 0.30, 0.12, 0.60, True), ("VINBS", 0.18, 0.56, 0.90, False)):
+        font = QFont("Segoe UI")
+        font.setPixelSize(int(height * size))
+        font.setBold(bold)
+        painter.setFont(font)
+        painter.drawText(QRectF(height * 1.05, height * top, width, height * (bottom - top)), Qt.AlignVCenter, text)
+    painter.end()
+    return image
+
+
 def write_ico(path: str) -> None:
     images = [(size, png(size)) for size in (16, 24, 32, 48, 64, 128, 256)]
     offset = 6 + 16 * len(images)
@@ -75,7 +97,8 @@ def write_icns(path: str) -> None:
 
 
 def main() -> None:
-    app = QGuiApplication.instance() or QGuiApplication(sys.argv[:1] + ["-platform", "offscreen"])
+    app = QGuiApplication.instance() or QGuiApplication(sys.argv[:1])
+    draw_banner(1120, 149).save(os.path.join(ICONS, "msi_banner.bmp"))
     write_ico(os.path.join(ICONS, "khoiphucfile.ico"))
     write_icns(os.path.join(ICONS, "khoiphucfile.icns"))
     for target in (os.path.join(ICONS, "khoiphucfile.png"), os.path.join(GUI, "icon.png")):

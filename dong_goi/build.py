@@ -27,10 +27,11 @@ APP = os.path.join(DIST, "KhoiPhucFile")
 sys.path[:0] = [ROOT, HERE]
 
 from khoiphucfile import APP_NAME, __version__  # noqa: E402
-from khoiphucfile.developer import DEVELOPER, EMAIL  # noqa: E402
+from khoiphucfile.developer import DEVELOPER, EMAIL, RULES, TERMS, read_document  # noqa: E402
 
 PNG = os.path.join(HERE, "icons", "khoiphucfile.png")
 ICO = os.path.join(HERE, "icons", "khoiphucfile.ico")
+BANNER = os.path.join(HERE, "icons", "msi_banner.bmp")
 
 
 def run(*command: str, **options) -> None:
@@ -98,10 +99,16 @@ def zip_folder(folder: str, path: str, top: str) -> None:
                 archive.write(full, os.path.join(top, os.path.relpath(full, folder)))
 
 
-def package_windows() -> None:
+def build_msi(path: str, version: str = __version__) -> None:
     import msi
+    import msi_ui
 
-    msi.build(APP, target(f"windows-{machine()}.msi"), APP_NAME, __version__, DEVELOPER, EMAIL, ICO)
+    terms = msi_ui.markdown_to_rtf(read_document(TERMS), read_document(RULES))
+    msi.build(APP, path, APP_NAME, version, DEVELOPER, EMAIL, ICO, terms, BANNER)
+
+
+def package_windows() -> None:
+    build_msi(target(f"windows-{machine()}.msi"))
     zip_folder(APP, target(f"windows-{machine()}-khong-can-cai.zip"), "KhoiPhucFile")
 
 
@@ -134,7 +141,7 @@ def package_wheel() -> None:
 def checksums() -> None:
     lines = []
     for name in sorted(os.listdir(OUT)):
-        if name != "SHA256SUMS.txt":
+        if name != "SHA256SUMS.txt" and os.path.isfile(os.path.join(OUT, name)):
             with open(os.path.join(OUT, name), "rb") as handle:
                 lines.append(f"{hashlib.sha256(handle.read()).hexdigest()}  {name}")
             print(f"{os.path.getsize(os.path.join(OUT, name)) / 1e6:8.1f} MB  {name}")

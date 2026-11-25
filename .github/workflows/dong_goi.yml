@@ -80,7 +80,7 @@ jobs:
         run: |
           $v1 = (Get-ChildItem ban_phat_hanh/*.msi).FullName
           $v2 = "$env:RUNNER_TEMP\moi.msi"
-          python -c "import sys; sys.path.insert(0,'dong_goi'); import msi, os; msi.build(os.path.abspath('.build/dist/KhoiPhucFile'), sys.argv[1], 'Khôi Phục File', '99.0.0', 'VINBS', 'x', os.path.abspath('dong_goi/icons/khoiphucfile.ico'))" $v2
+          python -c "import sys; sys.path.insert(0,'dong_goi'); import build; build.build_msi(sys.argv[1], '99.0.0')" $v2
           $dir = "$env:ProgramFiles\VINBS\Khoi Phuc File"
           $files = (Get-ChildItem .build/dist/KhoiPhucFile -Recurse -File).Count
           function Step($what, $msi, $expected) {
