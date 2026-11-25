@@ -1,0 +1,6 @@
+# Script và tệp cấu hình Linux phải giữ xuống dòng LF kể cả khi lấy về trên Windows.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.png binary
+*.ico binary
+*.icns binary

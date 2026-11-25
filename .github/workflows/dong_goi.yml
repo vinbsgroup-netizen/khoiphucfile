@@ -1,0 +1,125 @@
+name: Đóng gói
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: windows-x64, os: windows-2022 }
+          - { name: macos-arm64, os: macos-15 }
+          - { name: macos-x64, os: macos-15-intel }
+          - { name: linux-x64, os: ubuntu-22.04 }
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Thư viện hệ thống cho Qt
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1 libxkbcommon0 libxkbcommon-x11-0 libdbus-1-3 libfontconfig1 \
+            libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-image0 libxcb-render-util0 libxcb-shape0
+      - run: python -m pip install -r dong_goi/requirements.txt
+      - name: Test
+        run: python -m unittest discover -s tests -t . -v
+      - name: Đóng gói và chạy thử
+        run: python dong_goi/build.py
+
+      - name: Quét ổ thật (Linux, loop device, trao quyền qua helper)
+        if: runner.os == 'Linux'
+        run: |
+          python -c "from tests.test_khoiphuc import png_bytes as p; open('o.img','wb').write(bytes(1<<20)+p()+bytes(3<<20))"
+          dev=$(sudo losetup --find --show o.img)
+          .build/dist/KhoiPhucFile/khoiphuc disks
+          sudo .build/dist/KhoiPhucFile/khoiphuc scan "$dev" --out "$RUNNER_TEMP/ra"
+          test -f "$RUNNER_TEMP/ra/anh/png/khong_ro_ngay/s2048.png"
+          sudo -E python - "$dev" <<'EOF'
+          import os, sys
+          from khoiphucfile.disks import fdpass
+          fd = fdpass.open_through([".build/dist/KhoiPhucFile/khoiphuc", "open-device", sys.argv[1]], "bị từ chối")
+          assert os.pread(fd, 4, (1 << 20) + 1) == b"PNG\r"
+          EOF
+          sudo losetup -d "$dev"
+      - name: Cài thử gói deb
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y ./ban_phat_hanh/*.deb
+          khoiphuc --version
+          QT_QPA_PLATFORM=offscreen khoiphucfile --smoke-test
+          pkaction --action-id vn.vinbs.khoiphucfile.open-device --verbose
+      - name: Quét ổ thật (macOS, ảnh đĩa gắn thành /dev/rdiskN)
+        if: runner.os == 'macOS'
+        run: |
+          python -c "from tests.test_khoiphuc import png_bytes as p; open('o.img','wb').write(bytes(1<<20)+p()+bytes(3<<20))"
+          python -c "import os; s=os.path.getsize('o.img'); open('o.img','ab').write(bytes(-s%4096))"
+          dev=$(hdiutil attach -nomount -imagekey diskimage-class=CRawDiskImage o.img | head -1 | awk '{print $1}')
+          cli=.build/dist/KhoiPhucFile.app/Contents/MacOS/khoiphuc
+          "$cli" disks
+          "$cli" scan "$dev" --out "$RUNNER_TEMP/ra" || sudo "$cli" scan "$dev" --out "$RUNNER_TEMP/ra"
+          test -f "$RUNNER_TEMP/ra/anh/png/khong_ro_ngay/s2048.png"
+          hdiutil detach "$dev"
+      - name: Cài, nâng cấp, chặn hạ cấp, gỡ bộ msi
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $v1 = (Get-ChildItem ban_phat_hanh/*.msi).FullName
+          $v2 = "$env:RUNNER_TEMP\moi.msi"
+          python -c "import sys; sys.path.insert(0,'dong_goi'); import msi, os; msi.build(os.path.abspath('.build/dist/KhoiPhucFile'), sys.argv[1], 'Khôi Phục File', '99.0.0', 'VINBS', 'x', os.path.abspath('dong_goi/icons/khoiphucfile.ico'))" $v2
+          $dir = "$env:ProgramFiles\VINBS\Khoi Phuc File"
+          $files = (Get-ChildItem .build/dist/KhoiPhucFile -Recurse -File).Count
+          function Step($what, $msi, $expected) {
+            $p = Start-Process msiexec -ArgumentList $what, "`"$msi`"", '/qn', '/l*v', 'msi.log' -Wait -PassThru
+            if ($p.ExitCode -ne $expected) { Get-Content msi.log -Tail 60; throw "msiexec $what trả về $($p.ExitCode), cần $expected" }
+          }
+          function Check { $n = (Get-ChildItem $dir -Recurse -File).Count; if ($n -ne $files) { throw "có $n file, cần $files" } }
+          Step /i $v1 0; Check
+          & "$dir\khoiphuc.exe" disks
+          Step /i $v2 0; Check
+          Step /i $v1 1603; Check
+          Step /x $v2 0
+          if (Test-Path $dir) { throw 'gỡ chưa sạch' }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KhoiPhucFile-${{ matrix.name }}
+          path: |
+            ban_phat_hanh/*
+            !ban_phat_hanh/SHA256SUMS.txt
+          if-no-files-found: error
+
+  release:
+    name: Phát hành
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: ban
+          merge-multiple: true
+      - name: Tạo bản phát hành
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd ban
+          sha256sum * > SHA256SUMS.txt
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "Khôi Phục File $GITHUB_REF_NAME" \
+            --notes "Xem hướng dẫn cài trong README." *

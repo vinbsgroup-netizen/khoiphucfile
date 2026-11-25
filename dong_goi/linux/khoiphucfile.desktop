@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Khôi Phục File
+Comment=Cứu file từ ổ đĩa đã xoá, format hoặc bị ghi đè
+Exec=/opt/khoiphucfile/khoiphucfile
+Icon=khoiphucfile
+Terminal=false
+Categories=Utility;System;Filesystem;
+Keywords=recover;undelete;photorec;khôi phục;cứu dữ liệu;
+StartupWMClass=khoiphucfile

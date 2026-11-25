@@ -1,0 +1,11 @@
+.venv/
+.build/
+build/
+dist/
+ban_phat_hanh/
+*.egg-info/
+__pycache__/
+*.pyc
+
+# Chỉ dùng trên máy này (đường dẫn Python và ổ đĩa riêng)
+chay_khoi_phuc.bat

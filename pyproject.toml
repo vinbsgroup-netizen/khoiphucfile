@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "khoiphucfile"
+description = "Khôi Phục File: cứu file từ ổ đĩa đã xoá, format hoặc bị ghi đè (chỉ đọc ổ nguồn)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "LicenseRef-VINBS-Mien-Phi"
+license-files = ["khoiphucfile/van_ban/dieu_khoan_su_dung.md"]
+authors = [{ name = "VINBS", email = "vinbsgroup@gmail.com" }]
+dependencies = ["PySide6-Essentials>=6.6"]
+dynamic = ["version"]
+
+[project.scripts]
+khoiphuc = "khoiphucfile.cli:main"
+
+[project.gui-scripts]
+khoiphucfile = "khoiphucfile.__main__:main"
+
+[tool.setuptools]
+packages = ["khoiphucfile", "khoiphucfile.disks", "khoiphucfile.gui", "khoiphucfile.van_ban"]
+
+[tool.setuptools.package-data]
+"khoiphucfile.van_ban" = ["*.md"]
+"khoiphucfile.gui" = ["*.png"]
+
+[tool.setuptools.dynamic]
+version = { attr = "khoiphucfile.__version__" }

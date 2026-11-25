@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>VINBS</vendor>
+  <action id="vn.vinbs.khoiphucfile.open-device">
+    <description>Read a disk with Khoi Phuc File</description>
+    <description xml:lang="vi">Đọc ổ đĩa bằng Khôi Phục File</description>
+    <message>Authentication is required to read the disk (read-only)</message>
+    <message xml:lang="vi">Nhập mật khẩu quản trị để Khôi Phục File được đọc ổ đĩa (chỉ đọc)</message>
+    <icon_name>khoiphucfile</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/opt/khoiphucfile/khoiphuc</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">open-device</annotate>
+  </action>
+</policyconfig>
